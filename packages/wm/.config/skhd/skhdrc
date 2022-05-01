@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+alt + shift - n : open "$HOME"/Applications/Notion.app
