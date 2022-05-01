@@ -6,5 +6,6 @@ A bundle of configuration files and executable shell script helps you to set up 
 
 ```bash
 xcode-select --install # If you have not installed Xcode or Xcode Command Line Tools
-# TBA
+curl -H "Cache-Control: no-cache" https://github.com/fizzkazz/dotfiles/raw/master/packages/cli/scripts/dotfiles > "$HOME"/dotfiles.sh
+sh "$HOME"/dotfiles.sh
 ```
