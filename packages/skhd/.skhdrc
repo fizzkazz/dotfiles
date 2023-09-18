@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+rcmd + rshift + ralt + rctrl - n : open "$HOME/Applications/Notion.app"
+
+# Add Chrome user profile path with '--args --profile-directory="/Users/<user_name>/Library/Application Support/Google/Chrome/<profile_name>"'
+rcmd + rshift + ralt + rctrl - c : open -a "/Applications/Google Chrome.app" "https://calendar.google.com/calendar/u/0/r?tab=wc"
+rcmd + rshift + ralt + rctrl - m : open -a "/Applications/Google Chrome.app" "https://mail.google.com/mail/u/0/?pli=1#inbox"
+rcmd + rshift + ralt + rctrl - y : open -a "/Applications/Google Chrome.app" "https://www.youtube.com/"
+
+rcmd + rshift + ralt + rctrl - s : open "/Applications/Slack.app"
+rcmd + rshift + ralt + rctrl - v : open "$HOME/Applications/Visual Studio Code.app"

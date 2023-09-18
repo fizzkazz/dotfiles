@@ -1,0 +1,2 @@
+# Integrate MacOS to use asdf-java instead of `/usr/libexec/java_home`
+java_macos_integration_enable = yes
