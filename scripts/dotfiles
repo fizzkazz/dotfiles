@@ -164,6 +164,7 @@ brew bundle --file "$CLONE_PATH"/.dotfiles/Brewfile_cask_local
 if "${install_mas}" ; then
     log 'Installing APP via mas.'
     brew bundle --file "$CLONE_PATH"/.dotfiles/Brewfile_mas
+    sudo xcodebuild -license accept
 fi
 
 # Unlink packages if they have been specified
