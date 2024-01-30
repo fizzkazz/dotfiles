@@ -6,6 +6,7 @@ rcmd + rshift + ralt + rctrl - n : open "$HOME/Applications/Notion.app"
 rcmd + rshift + ralt + rctrl - c : open -a "/Applications/Google Chrome.app" "https://calendar.google.com/calendar/u/0/r?tab=wc"
 rcmd + rshift + ralt + rctrl - m : open -a "/Applications/Google Chrome.app" "https://mail.google.com/mail/u/0/?pli=1#inbox"
 rcmd + rshift + ralt + rctrl - y : open -a "/Applications/Google Chrome.app" "https://www.youtube.com/"
+rcmd + rshift + ralt + rctrl - g : open -a "/Applications/Google Chrome.app" "https://chat.openai.com/"
 
 rcmd + rshift + ralt + rctrl - s : open "/Applications/Slack.app"
 rcmd + rshift + ralt + rctrl - v : open "$HOME/Applications/Visual Studio Code.app"
