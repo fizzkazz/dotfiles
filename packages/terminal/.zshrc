@@ -7,8 +7,6 @@ eval "$(starship init zsh)"
 
 # Aliases
 alias cat="bat"
-alias ll="ls -lah --git"
-alias lt="ll -TL 3 --ignore-glob=.git"
 alias pr="gh pr view --web"
 alias fd="fd -H"
 
