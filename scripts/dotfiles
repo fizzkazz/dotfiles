@@ -153,14 +153,14 @@ fi
 export PATH="$HOME/homebrew/bin:$PATH"
 
 # Install Apps and CLI tools scripted in Brewfile
-log 'Installing packages via Homebrew'
-brew bundle --file "$CLONE_PATH"/.dotfiles/Brewfile
 if "${install_global_cask}" ; then
     log 'Installing cask packages globally via Homebrew.'
     brew bundle --file "$CLONE_PATH"/.dotfiles/Brewfile_cask_global
 fi
 log 'Installing cask packages locally via Homebrew.'
 brew bundle --file "$CLONE_PATH"/.dotfiles/Brewfile_cask_local
+log 'Installing local packages via Homebrew'
+brew bundle --file "$CLONE_PATH"/.dotfiles/Brewfile
 if "${install_mas}" ; then
     log 'Installing APP via mas.'
     brew bundle --file "$CLONE_PATH"/.dotfiles/Brewfile_mas
