@@ -106,11 +106,12 @@ if [ $? == 0 ] ; then
     git config --global alias.nb 'switch -c'
     git config --global alias.ad add
     git config --global alias.aa 'add -A'
-    git config --global alias.ucs 'reset --soft HEAD^'
-    git config --global alias.uch 'reset --hard HEAD^'
+    git config --global alias.rs 'reset --soft HEAD^'
+    git config --global alias.rh 'reset --hard HEAD^'
     git config --global alias.br branch
-    git config --global alias.ci commit
+    git config --global alias.cm commit
     git config --global alias.st status
+    git config --global alias.pb '!f() { git push -u origin $(git rev-parse --abbrev-ref HEAD); }; f'
 fi
 
 ask_y_n "Install global cask packages? (y/n):"
