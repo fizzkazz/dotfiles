@@ -243,8 +243,8 @@ fi
 open "${HOME}/terminal_themes/atom-one-dark-terminal/scheme/terminal/One Dark.terminal"
 
 # System Preferences
-## Quit System Preferences App in order to prevent any conflicts
-osascript -e 'tell application "System Preferences" to quit'
+## Quit System Settings App in order to prevent any conflicts
+osascript -e 'tell application "System Settings" to quit'
 
 ## Disable startup sound
 sudo nvram StartupMute=%01
