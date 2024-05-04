@@ -10,3 +10,5 @@ rcmd + rshift + ralt + rctrl - g : open -a "/Applications/Google Chrome.app" "ht
 
 rcmd + rshift + ralt + rctrl - s : open "/Applications/Slack.app"
 rcmd + rshift + ralt + rctrl - v : open "$HOME/Applications/Visual Studio Code.app"
+rcmd + rshift + ralt + rctrl - r : open "/Applications/RubyMine.app"
+rcmd + rshift + ralt + rctrl - p : open "/Applications/PyCharm.app"
