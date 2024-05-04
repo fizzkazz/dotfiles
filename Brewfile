@@ -1,6 +1,8 @@
 tap "koekeishiya/formulae"
 
 brew "coreutils"
+brew "git"
+brew "vim"
 brew "gh"
 brew "fd"
 brew "jq"
