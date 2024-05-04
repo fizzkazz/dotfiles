@@ -1,5 +1,3 @@
-tap "homebrew/cask"
-
 cask "alfred"
 cask "android-file-transfer"
 cask "figma"
@@ -24,3 +22,4 @@ cask "stoplight-studio"
 cask "vivaldi"
 cask "notion"
 cask "vpn-by-google-one"
+cask "google-drive"
