@@ -3,5 +3,4 @@ cask_args appdir: "~/Applications"
 
 cask "font-sauce-code-pro-nerd-font"
 cask "visual-studio-code"
-cask "android-studio"
 cask "google-cloud-sdk"
