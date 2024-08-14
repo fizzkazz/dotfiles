@@ -6,5 +6,5 @@ cmd + shift + alt + ctrl - g : open "https://chat.openai.com/"
 cmd + shift + alt + ctrl - s : open "/Applications/Slack.app"
 cmd + shift + alt + ctrl - v : open "$HOME/Applications/Visual Studio Code.app"
 cmd + shift + alt + ctrl - r : open "/Applications/RubyMine.app"
-cmd + shift + alt + ctrl - t : open "/System/Applications/Utilities/Terminal.app"
+cmd + shift + alt + ctrl - t : open "/Applications/iTerm.app"
 cmd + shift + alt + ctrl - l : open -a ScreenSaverEngine
