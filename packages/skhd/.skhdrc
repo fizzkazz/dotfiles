@@ -1,3 +1,4 @@
+cmd + shift + alt + ctrl - a : open "/Applications/Arc.app"
 cmd + shift + alt + ctrl - n : open "/Applications/Notion.app"
 cmd + shift + alt + ctrl - c : open "/Applications/Notion Calendar.app"
 cmd + shift + alt + ctrl - m : open "https://mail.google.com/mail/u/0/?pli=1#inbox"
