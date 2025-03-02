@@ -1,11 +1,9 @@
 cmd + shift + alt + ctrl - a : open "/Applications/Arc.app"
 cmd + shift + alt + ctrl - n : open "/Applications/Notion.app"
-cmd + shift + alt + ctrl - c : open "/Applications/Notion Calendar.app"
+cmd + shift + alt + ctrl - c : open "/Applications/Cursor.app"
 cmd + shift + alt + ctrl - m : open "https://mail.google.com/mail/u/0/?pli=1#inbox"
 cmd + shift + alt + ctrl - y : open "https://www.youtube.com/"
 cmd + shift + alt + ctrl - g : open "https://chat.openai.com/"
 cmd + shift + alt + ctrl - s : open "/Applications/Slack.app"
-cmd + shift + alt + ctrl - v : open "$HOME/Applications/Visual Studio Code.app"
-cmd + shift + alt + ctrl - r : open "/Applications/RubyMine.app"
 cmd + shift + alt + ctrl - t : open "/Applications/iTerm.app"
 cmd + shift + alt + ctrl - l : open -a ScreenSaverEngine
