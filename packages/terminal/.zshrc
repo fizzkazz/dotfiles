@@ -1,7 +1,6 @@
 export PATH=$PATH:$HOME/scripts
 export GIT_CLONE_PATH="$HOME"/src/fizzkazz
 export PATH="$HOME/homebrew/bin:$PATH"
-export CHROME_EXECUTABLE="$HOME"/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
 
 eval "$(starship init zsh)"
 
@@ -34,7 +33,3 @@ dcr() { docker compose run $@ }
 
 # Set JAVA_HOME
 . "$HOME"/.asdf/plugins/java/set-java-home.zsh
-
-# Google Cloud SDK
-source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"
-source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"
