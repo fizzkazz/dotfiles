@@ -1,6 +1,4 @@
-tap "homebrew/cask-fonts"
 cask_args appdir: "~/Applications"
 
 cask "font-sauce-code-pro-nerd-font"
-cask "visual-studio-code"
-cask "google-cloud-sdk"
+cask "cursor"
