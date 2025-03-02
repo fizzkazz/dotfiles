@@ -1,4 +1,3 @@
 cask_args appdir: "~/Applications"
 
 cask "font-sauce-code-pro-nerd-font"
-cask "cursor"
