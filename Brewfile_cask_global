@@ -1,6 +1,5 @@
 cask "alfred"
 cask "figma"
-cask "miro"
 cask "chromedriver"
 cask "arc"
 cask "slack"
