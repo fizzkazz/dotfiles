@@ -140,7 +140,7 @@ fi
 ## Install Homebrew into the user directory
 if ! is_file ~/homebrew/bin/brew ; then
     log 'Could not find Homebrew in `~/homebrew`. Setting up Homebrew.'
-    mkdir -p ~/homebrew && curl -L https://github.com/Homebrew/brew/tarball/ter | tar xz --strip 1 -C ~/homebrew
+    mkdir -p ~/homebrew && curl -L https://github.com/Homebrew/brew/tarball/main | tar xz --strip 1 -C ~/homebrew
 fi
 
 ## Export Homebrew PATH in order to use Homebrew command below
