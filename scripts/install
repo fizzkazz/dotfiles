@@ -1,0 +1,131 @@
+#!/usr/bin/env zsh
+
+set -eu
+setopt pipefail
+
+START_PWD="$PWD"
+SCRIPT_DIR="${0:A:h}"
+REPO_DIR="${SCRIPT_DIR:h}"
+
+source "$SCRIPT_DIR/lib/common.zsh"
+
+computer_name=""
+host_name=""
+install_brew_packages=1
+input_cache_file="$(dotfiles_input_cache_file install)"
+reuse_cached_inputs=0
+current_user="${USER:-$(id -un)}"
+admin_user=""
+admin_user_file="$(dotfiles_install_admin_user_file)"
+install_cask_packages=0
+
+dotfiles_init_output "$START_PWD"
+
+log "0/3 実行前の前提を準備します"
+log "dotfiles 必須ファイルを確認しています..."
+ensure_repo_files
+success "dotfiles 必須ファイルの確認が完了しました"
+log "ユーザー別 Homebrew を install 開始時に準備しています..."
+install_homebrew_if_missing
+log "ユーザー別 Homebrew を確認しています..."
+ensure_homebrew
+success "ユーザー別 Homebrew の確認が完了しました"
+admin_user="$(resolve_dotfiles_install_admin_user)"
+if [[ -z "$admin_user" ]]; then
+  warn "Admin ユーザー情報を保存できなかったため、cask のインストールはスキップします: $admin_user_file"
+elif [[ "$current_user" == "$admin_user" ]]; then
+  install_cask_packages=1
+  log "現在ユーザーは Admin ユーザーです。cask のインストールを実行します: $current_user"
+else
+  log "現在ユーザーは Admin ユーザーではないため、cask のインストールをスキップします（Admin: $admin_user, 現在: $current_user）"
+fi
+
+if prompt_reuse_cached_values "$input_cache_file" "前回の install 設定"; then
+  reuse_cached_inputs=1
+fi
+
+log "1/3 設定値を準備します"
+if (( ! reuse_cached_inputs )); then
+  prompt_text computer_name "ComputerName（空欄で変更しない）"
+  prompt_text host_name "LocalHostName（空欄で変更しない）"
+  prompt_yes_no install_brew_packages "Homebrew パッケージをインストールする"
+fi
+
+log "2/3 入力内容を確認します"
+if [[ -n "$computer_name" ]]; then
+  print -- "  ComputerName: ${computer_name}"
+else
+  print -- "  ComputerName: 変更しない"
+fi
+if [[ -n "$host_name" ]]; then
+  print -- "  LocalHostName: ${host_name}"
+else
+  print -- "  LocalHostName: 変更しない"
+fi
+print -- "  Homebrew 本体: 開始時に確認済み"
+if is_truthy "$install_brew_packages"; then
+  print -- "  Homebrew パッケージ: インストールを実行する"
+  if (( install_cask_packages )); then
+    print -- "  Homebrew cask: インストールを実行する（Admin: ${admin_user}）"
+  else
+    print -- "  Homebrew cask: インストールをスキップする（Admin: ${admin_user:-未設定}）"
+  fi
+else
+  print -- "  Homebrew パッケージ: インストールをスキップする"
+  print -- "  Homebrew cask: インストールをスキップする"
+fi
+
+if ! confirm_execution; then
+  warn "処理を中止しました"
+  exit 0
+fi
+
+if ! save_cached_prompt_values "$input_cache_file" \
+  computer_name \
+  host_name \
+  install_brew_packages; then
+  warn "入力値のキャッシュ保存に失敗しました"
+fi
+
+log "3/3 設定を実行します"
+
+needs_sudo=0
+[[ -n "$host_name" ]] && needs_sudo=1
+if (( needs_sudo )); then
+  ensure_sudo_non_interactive
+fi
+
+if [[ -n "$computer_name" ]]; then
+  log "コンピュータ名を設定しています..."
+  scutil --set ComputerName "$computer_name"
+  success "コンピュータ名を設定しました"
+else
+  log "コンピュータ名の設定はスキップしました"
+fi
+
+if [[ -n "$host_name" ]]; then
+  log "ホスト名を設定しています..."
+  sudo -n scutil --set LocalHostName "$host_name"
+  success "ホスト名を設定しました"
+else
+  log "ホスト名の設定はスキップしました"
+fi
+
+export CI=1
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_ENV_HINTS=1
+log "Homebrew の自動更新と補助表示を抑制して実行します"
+
+if is_truthy "$install_brew_packages"; then
+  if (( install_cask_packages )); then
+    log "Homebrew パッケージ（cask 含む）をインストールしています..."
+    brew bundle --no-upgrade --file "$REPO_DIR/Brewfile"
+    success "Homebrew パッケージ（cask 含む）のインストールが完了しました"
+  else
+    log "Homebrew パッケージ（cask を除く）をインストールしています..."
+    brew bundle --no-upgrade --no-cask --file "$REPO_DIR/Brewfile"
+    success "Homebrew パッケージ（cask を除く）のインストールが完了しました"
+  fi
+else
+  log "Homebrew パッケージのインストールはスキップしました"
+fi
