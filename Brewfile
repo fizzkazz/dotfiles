@@ -13,7 +13,7 @@ brew "starship"
 brew "stow"
 brew "terminal-notifier"
 brew "tmux"
-brew "zsh-autocomplete"
+brew "zsh-autosuggestions"
 
 cask "arc"
 cask "cloudflare-warp"
