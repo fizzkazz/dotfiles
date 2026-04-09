@@ -1,5 +1,6 @@
 cmd + shift + alt + ctrl - a : open "/Applications/Arc.app"
 cmd + shift + alt + ctrl - c : open "/Applications/Codex.app"
+cmd + shift + alt + ctrl - f : open "https://calendar.google.com/calendar/u/0/r"
 cmd + shift + alt + ctrl - m : open "https://mail.google.com/"
 cmd + shift + alt + ctrl - s : open "/Applications/Slack.app"
 cmd + shift + alt + ctrl - t : open "/Applications/iTerm.app"
