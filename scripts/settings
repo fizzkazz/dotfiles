@@ -1,0 +1,243 @@
+#!/usr/bin/env zsh
+
+set -eu
+setopt pipefail
+
+die() { print -u2 -- "[ERROR] $*"; exit 1; }
+warn() { print -u2 -- "[WARNING] $*"; }
+log() { print -- "[INFO] $*"; }
+success() { print -- "[SUCCESS] $*"; }
+
+apply_setting() {
+  local label="$1"
+  shift
+  log "適用中: ${label}"
+  "$@"
+  success "適用完了: ${label}"
+}
+
+apply_setting_best_effort() {
+  local label="$1"
+  shift
+  log "適用中（ベストエフォート）: ${label}"
+  if "$@"; then
+    success "適用完了: ${label}"
+  else
+    warn "${label} の適用に失敗しました"
+  fi
+}
+
+SUDO_READY=0
+
+ensure_sudo_for_startup_sound() {
+  if (( EUID == 0 )); then
+    SUDO_READY=1
+    return 0
+  fi
+
+  if ! command -v sudo >/dev/null 2>&1; then
+    warn "sudo が見つからないため、起動音設定をスキップします"
+    return 1
+  fi
+
+  log "起動音設定のため sudo 認証を確認します"
+  if sudo -v; then
+    SUDO_READY=1
+    success "sudo 認証を確認しました"
+    return 0
+  fi
+
+  warn "sudo 認証に失敗したため、起動音設定をスキップします"
+  return 1
+}
+
+set_url_scheme_handler() {
+  local plist="$1"
+  local scheme="$2"
+  local bundle_id="$3"
+  local idx=0
+  local current_scheme=""
+
+  while /usr/libexec/PlistBuddy -c "Print :LSHandlers:$idx" "$plist" >/dev/null 2>&1; do
+    current_scheme="$(/usr/libexec/PlistBuddy -c "Print :LSHandlers:$idx:LSHandlerURLScheme" "$plist" 2>/dev/null || true)"
+    if [[ "$current_scheme" == "$scheme" ]]; then
+      /usr/libexec/PlistBuddy -c "Delete :LSHandlers:$idx" "$plist" >/dev/null 2>&1 || true
+      continue
+    fi
+    idx=$((idx + 1))
+  done
+
+  idx=0
+  while /usr/libexec/PlistBuddy -c "Print :LSHandlers:$idx" "$plist" >/dev/null 2>&1; do
+    idx=$((idx + 1))
+  done
+
+  /usr/libexec/PlistBuddy -c "Add :LSHandlers:$idx dict" "$plist" >/dev/null
+  /usr/libexec/PlistBuddy -c "Add :LSHandlers:$idx:LSHandlerURLScheme string $scheme" "$plist" >/dev/null
+  /usr/libexec/PlistBuddy -c "Add :LSHandlers:$idx:LSHandlerRoleAll string $bundle_id" "$plist" >/dev/null
+}
+
+usage() {
+  cat <<'EOF'
+使い方:
+  settings
+
+注意:
+  - 基本は非対話実行です
+  - 起動音設定のため、必要に応じて sudo パスワード入力を求めます
+EOF
+}
+
+if (( $# )); then
+  case "$1" in
+    -h|--help) usage; exit 0 ;;
+    *) die "不明なオプションです: $1（--help を参照してください）" ;;
+  esac
+fi
+
+SUPPORTED_MACOS_MAJOR="26"
+SUPPORTED_MACOS_NAME="Tahoe"
+
+macos_version="$(sw_vers -productVersion 2>/dev/null || true)"
+macos_major="${macos_version%%.*}"
+if [[ -z "$macos_version" ]]; then
+  warn "macOS バージョンを取得できませんでした"
+elif [[ "$macos_major" != "$SUPPORTED_MACOS_MAJOR" ]]; then
+  warn "このスクリプトは macOS ${SUPPORTED_MACOS_MAJOR}（${SUPPORTED_MACOS_NAME}）向けの設定です（現在: ${macos_version}）"
+else
+  log "macOS ${macos_version}（${SUPPORTED_MACOS_NAME}）として実行します"
+fi
+
+ensure_sudo_for_startup_sound || true
+
+log "macOS システム設定を適用します"
+
+# 設定反映の競合を避けるため、System Settings を終了する（ベストエフォート）
+apply_setting_best_effort "System Settings の終了" osascript -e 'tell application "System Settings" to quit'
+
+# 起動音を無効化（ベストエフォート）
+if (( SUDO_READY )); then
+  if (( EUID == 0 )); then
+    nvram SystemAudioVolume=%00 >/dev/null 2>&1 || warn "起動音設定の適用に失敗しました（このモデル/OSでは無効な場合があります）"
+  else
+    sudo -n nvram SystemAudioVolume=%00 >/dev/null 2>&1 || warn "起動音設定の適用に失敗しました（このモデル/OSでは無効な場合があります）"
+  fi
+  success "起動音設定を適用しました"
+else
+  warn "sudo 未認証のため、起動音設定をスキップしました"
+fi
+
+# Finder: 隠しファイルを表示する
+apply_setting "Finder 隠しファイルの表示" defaults write com.apple.finder AppleShowAllFiles -bool true
+# Finder: すべての拡張子を表示する
+apply_setting "Finder 拡張子の常時表示" defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+# Finder: 既定表示をリスト表示にする
+apply_setting "Finder 既定表示をリスト表示" defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+# Finder: 新規ウインドウの表示先をホームディレクトリにする
+apply_setting "Finder 新規ウインドウ表示先をホーム" defaults write com.apple.finder NewWindowTarget -string "PfHm"
+# Finder: ラベル（タグ）をすべて表示対象から外す
+apply_setting "Finder タグ表示リストの初期化" defaults write com.apple.finder FavoriteTagNames -array
+apply_setting "Finder 最近使ったタグの非表示" defaults write com.apple.finder ShowRecentTags -bool false
+
+# Trackpad: 速度を最大にする
+apply_setting "Trackpad 速度を最大" defaults write -g com.apple.trackpad.scaling -float 3
+# Trackpad: タップでクリックを有効化する（内蔵・外付け・全体）
+apply_setting "Trackpad タップでクリック（内蔵）" defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
+apply_setting "Trackpad タップでクリック（外付け）" defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+apply_setting "Trackpad タップでクリック（currentHost）" defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+apply_setting "Trackpad タップでクリック（global）" defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+
+# Control Center: 意図した表示状態に合わせる（Tahoe）
+# 2: メニューバーに表示 / 再生時のみ表示, 8: メニューバーに表示しない, 18: 常にメニューバーに表示
+apply_setting "Control Center Wi-Fi 表示" defaults -currentHost write com.apple.controlcenter WiFi -int 2
+apply_setting "Control Center Bluetooth 表示" defaults -currentHost write com.apple.controlcenter Bluetooth -int 2
+apply_setting "Control Center AirDrop 非表示" defaults -currentHost write com.apple.controlcenter AirDrop -int 8
+apply_setting "Control Center Focus 非表示" defaults -currentHost write com.apple.controlcenter FocusModes -int 8
+apply_setting "Control Center Stage Manager 非表示" defaults -currentHost write com.apple.controlcenter StageManager -int 8
+apply_setting "Control Center 画面ミラーリング非表示" defaults -currentHost write com.apple.controlcenter ScreenMirroring -int 8
+apply_setting "Control Center ディスプレイ非表示" defaults -currentHost write com.apple.controlcenter Display -int 8
+apply_setting "Control Center サウンド常時表示" defaults -currentHost write com.apple.controlcenter Sound -int 18
+apply_setting "Control Center 再生中のみ表示" defaults -currentHost write com.apple.controlcenter NowPlaying -int 2
+
+# Fast User Switching:
+# com.apple.controlcenter UserSwitcher
+#   1=Control Center のみ, 2=Menu Bar のみ, 3=両方, 8=非表示
+# NSGlobalDomain userMenuExtraStyle
+#   0=Full Name, 1=Account Name, 2=Icon
+apply_setting "Fast User Switching をメニューバー表示" defaults -currentHost write com.apple.controlcenter UserSwitcher -int 2
+apply_setting "Fast User Switching 表示をフルネーム" defaults write NSGlobalDomain userMenuExtraStyle -int 0
+apply_setting "UserSwitcher ステータス項目の表示" defaults write com.apple.controlcenter "NSStatusItem VisibleCC UserSwitcher" -int 1
+
+# Menu Bar:
+# Tahoe では意味が変わりやすい Item-N キーは使わず、確認できた名前付きキーだけを操作する
+apply_setting "メニューバー Spotlight を非表示" defaults -currentHost write com.apple.Spotlight MenuItemHidden -int 1
+apply_setting "メニューバー Siri を非表示" defaults write com.apple.Siri StatusMenuVisible -bool false
+apply_setting "メニューバー Clock を表示" defaults write com.apple.controlcenter "NSStatusItem VisibleCC Clock" -int 1
+
+# Spotlight: ショートカットキーを無効化する
+# 64: Spotlight 検索（通常は Command + Space）
+# 65: Finder 検索（通常は Option + Command + Space）
+apply_setting_best_effort "Spotlight 検索ショートカットの無効化" defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 "{enabled = 0;}"
+apply_setting_best_effort "Finder 検索ショートカットの無効化" defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 65 "{enabled = 0;}"
+
+# 最近の項目: 1件も保持しない
+apply_setting "最近の項目を 0 件に設定" defaults write NSGlobalDomain NSRecentDocumentsLimit -int 0
+apply_setting "最近の項目の保存件数を 0 件に設定" defaults write com.apple.recentitems MaxAmount -int 0
+
+# デフォルトブラウザ: Arc が利用可能な場合のみ Arc を設定する
+arc_app_path=""
+for candidate in "/Applications/Arc.app" "$HOME/Applications/Arc.app"; do
+  if [[ -d "$candidate" ]]; then
+    arc_app_path="$candidate"
+    break
+  fi
+done
+
+if [[ -n "$arc_app_path" ]]; then
+  log "Arc アプリを検出しました: $arc_app_path"
+  arc_bundle_id="$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$arc_app_path/Contents/Info.plist" 2>/dev/null || true)"
+  if [[ -n "$arc_bundle_id" ]]; then
+    log "Arc Bundle ID: $arc_bundle_id"
+    launchservices_plist="$HOME/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist"
+    mkdir -p "${launchservices_plist:h}"
+    if [[ ! -f "$launchservices_plist" ]]; then
+      apply_setting "LaunchServices LSHandlers を初期化" /usr/bin/defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers -array
+    fi
+
+    /usr/libexec/PlistBuddy -c "Print :LSHandlers" "$launchservices_plist" >/dev/null 2>&1 || \
+      /usr/libexec/PlistBuddy -c "Add :LSHandlers array" "$launchservices_plist" >/dev/null 2>&1 || true
+
+    log "Arc をデフォルトブラウザとして URL スキームを設定します"
+    set_url_scheme_handler "$launchservices_plist" "http" "$arc_bundle_id"
+    set_url_scheme_handler "$launchservices_plist" "https" "$arc_bundle_id"
+    apply_setting_best_effort "cfprefsd の再起動" killall cfprefsd
+
+    success "Arc をデフォルトブラウザに設定しました"
+  else
+    warn "Arc の Bundle ID を取得できなかったため、デフォルトブラウザ設定をスキップしました"
+  fi
+else
+  log "Arc が見つからないため、デフォルトブラウザ設定をスキップしました"
+fi
+
+# Dock: サイズを設定する
+apply_setting "Dock サイズを 35 に設定" defaults write com.apple.dock tilesize -int 35
+# Dock: 拡大表示を無効化する
+apply_setting "Dock 拡大表示を無効化" defaults write com.apple.dock magnification -bool false
+# Dock: 左側に配置する
+apply_setting "Dock を左側に配置" defaults write com.apple.dock orientation -string "left"
+# Dock: 自動的に隠す
+apply_setting "Dock 自動的に隠す" defaults write com.apple.dock autohide -bool true
+# Dock: アイテムをすべて削除する（アプリ・その他）
+apply_setting "Dock アプリ項目をクリア" defaults write com.apple.dock persistent-apps -array
+apply_setting "Dock その他項目をクリア" defaults write com.apple.dock persistent-others -array
+# Dock: 最近使ったアプリ表示を無効化する
+apply_setting "Dock 最近使ったアプリ表示を無効化" defaults write com.apple.dock show-recents -bool false
+
+# 変更を即時反映する（ベストエフォート）
+apply_setting_best_effort "Finder の再起動" killall Finder
+apply_setting_best_effort "Dock の再起動" killall Dock
+apply_setting_best_effort "ControlCenter の再起動" killall ControlCenter
+apply_setting_best_effort "SystemUIServer の再起動" killall SystemUIServer
+
+success "設定適用が完了しました（必要に応じて再ログインしてください）"

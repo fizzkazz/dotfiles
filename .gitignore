@@ -1,0 +1,4 @@
+*.lock.json
+dotfiles_stdout_*.log
+dotfiles_stderr_*.log
+nvim.log
